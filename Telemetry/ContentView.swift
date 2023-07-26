@@ -7,10 +7,10 @@
 
 import SwiftUI
 import UIKit
+import Network
 
 struct ContentView: View {
     
-    @State public var isStarted = false
     @State public var isConnected:Bool = false
     
     @State public var VBattString:String = "0.00"
@@ -28,24 +28,18 @@ struct ContentView: View {
         // Text("Hello, world!")
         
         Form {
-            Toggle(isOn: $isStarted, label: {
-                HStack {
-                    if isStarted {
-                        if isConnected {
-                            Image(systemName: "power").foregroundColor(.green)
-                            Text("Connected")
-                        } else {
-                            Image(systemName: "power").foregroundColor(.orange)
-                            Text("Connecting")
-                        }
-                    } else {
-                        Image(systemName: "power").foregroundColor(.red)
-                        Text("Stopped")
-                    }
-                    
-                }
-            })
-            
+            HStack {
+				if isConnected {
+					Image(systemName: "power").foregroundColor(.green)
+					Text("Connected")
+				} else {
+					Image(systemName: "power").foregroundColor(.red)
+					Text("Connecting")
+				}
+				Button("Connect") {
+					UdpListener.createConnection(connection: UdpListener.connection)
+				}
+            }            
             HStack{Text("VBatt")
                 Spacer()
                 Text(VBattString+"V")

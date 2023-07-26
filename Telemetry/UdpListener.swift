@@ -24,7 +24,7 @@ class UdpListenerClass: ObservableObject {
     
     // UDP Listener
     var Listener: NWListener?
-    var Connection: NWConnection?
+    var connection: NWConnection?
     var Queue = DispatchQueue.global(qos: .userInitiated)
 
     @Published private(set) public var isReady: Bool = false
@@ -54,32 +54,32 @@ class UdpListenerClass: ObservableObject {
                 print("Listener connecting to port \(port)...")
             }
         }
-        self.Listener?.newConnectionHandler = { Connection in
-            self.createConnection(Connection: Connection)
+        self.Listener?.newConnectionHandler = { connection in
+            self.createConnection(connection: connection)
         }
         self.Listener?.start(queue: self.Queue)
     }
     
-    func createConnection(Connection: NWConnection) {
-        self.Connection = Connection
-        self.Connection?.stateUpdateHandler = { (NewState) in
+    func createConnection(connection: NWConnection) {
+        self.connection = connection
+        self.connection?.stateUpdateHandler = { (NewState) in
             switch (NewState) {
             case .ready:
                 self.receive()
-                print("Listener ready to receive message") // - \(Connection)")
+                print("Listener ready to receive message") // - \(connection)")
             case .failed, .cancelled:
                 self.Listener?.cancel()
                 self.Listening = false
-                print("Listener failed to receive message") // - \(Connection)")
+                print("Listener failed to receive message") // - \(connection)")
             default:
-                print("Listener waiting to receive message") // - \(Connection)")
+                print("Listener waiting to receive message") // - \(connection)")
             }
         }
-        self.Connection?.start(queue: .global())
+        self.connection?.start(queue: .global())
     }
     
     func receive() {
-        self.Connection?.receiveMessage { Data, Context, isComplete, Error in
+        self.connection?.receiveMessage { Data, Context, isComplete, Error in
             if let unwrappedError = Error {
                 print("Error : NWError received in \(#function) - \(unwrappedError)")
                 return
@@ -100,7 +100,7 @@ class UdpListenerClass: ObservableObject {
     
     func cancel() {
         self.Listening = false
-        self.Connection?.cancel()
+        self.connection?.cancel()
     }
 }
 
