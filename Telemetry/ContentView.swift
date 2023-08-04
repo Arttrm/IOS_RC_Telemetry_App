@@ -28,18 +28,9 @@ struct ContentView: View {
         // Text("Hello, world!")
         
         Form {
-            HStack {
-				if isConnected {
-					Image(systemName: "power").foregroundColor(.green)
-					Text("Connected")
-				} else {
-					Image(systemName: "power").foregroundColor(.red)
-					Text("Connecting")
-				}
-				Button("Connect") {
-					UdpListener.createConnection(connection: UdpListener.connection)
-				}
-            }            
+            
+			// Toggle button to start / stop the listener
+			
             HStack{Text("VBatt")
                 Spacer()
                 Text(VBattString+"V")
@@ -59,7 +50,7 @@ struct ContentView: View {
         }
         
         .onReceive(UdpListener.$UdpMsgString) { Str in
-            print("Message received")
+            print("Message received in app : \(Str)")
             isConnected = true
             decodeMessage(UdpMsgString: Str)
         }

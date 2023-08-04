@@ -65,16 +65,18 @@ class UdpListenerClass: ObservableObject {
         self.connection?.stateUpdateHandler = { (NewState) in
             switch (NewState) {
             case .ready:
-                self.receive()
-                print("Listener ready to receive message") // - \(connection)")
+				print("Listener ready to receive message") // - \(connection)")
+                // self.receive()
             case .failed, .cancelled:
+				print("Listener failed to receive message") // - \(connection)")
                 self.Listener?.cancel()
                 self.Listening = false
-                print("Listener failed to receive message") // - \(connection)")
             default:
                 print("Listener waiting to receive message") // - \(connection)")
+				// self.receive()
             }
         }
+		self.receive()
         self.connection?.start(queue: .global())
     }
     
@@ -90,7 +92,7 @@ class UdpListenerClass: ObservableObject {
             }
             self.UdpMsg = data
             self.UdpMsgString = String(decoding: self.UdpMsg!, as: UTF8.self)
-            print("Received message : \(self.UdpMsgString)")
+            print("Message received in class : \(self.UdpMsgString)")
                         
             if self.Listening {
                 self.receive()
