@@ -13,25 +13,28 @@ import Foundation
 import Network
 import Combine
 
+import UserNotifications
+
 class UdpListenerClass: ObservableObject {
-    
-    // Test
-    @Published private(set) var count: Int = 0
-    
-    func countUp() {
-        count += 1
-    }
-    
+   
     // UDP Listener
     var Listener: NWListener?
     var connection: NWConnection?
     var Queue = DispatchQueue.global(qos: .userInitiated)
 
     @Published private(set) public var isReady: Bool = false
-    @Published public var Listening: Bool = true
+    @Published public var Listening: Bool = true // false
+	
+	@Published private(set) public var UdpMsgCntr: Int = 0
     
-    @Published public var UdpMsg: Data?
-    @Published public var UdpMsgString: String = ""
+    @Published private var UdpMsg: Data?
+    @Published private var UdpMsgString: String = ""
+	@Published private var UdpMsgList: [String] = ["","",""]
+	
+	// @Published private(set) public var VBattString:String = "0.00"
+    // @Published private(set) public var VBecString:String = "0.00"
+    // @Published private(set) public var Temp1String:String = "0.00"
+    // @Published private(set) public var Temp2String:String = "0.00"
         
     convenience init(on port: Int) {
         self.init(on: NWEndpoint.Port(integerLiteral: NWEndpoint.Port.IntegerLiteralType(port)))
@@ -81,7 +84,9 @@ class UdpListenerClass: ObservableObject {
     }
     
     func receive() {
+
         self.connection?.receiveMessage { Data, Context, isComplete, Error in
+
             if let unwrappedError = Error {
                 print("Error : NWError received in \(#function) - \(unwrappedError)")
                 return
@@ -90,13 +95,34 @@ class UdpListenerClass: ObservableObject {
                 print("Error : Received nil Data with context - \(String(describing: Context))")
                 return
             }
-            self.UdpMsg = data
-            self.UdpMsgString = String(decoding: self.UdpMsg!, as: UTF8.self)
-            print("Message received in class : \(self.UdpMsgString)")
-                        
+			
+            self.UdpMsgCntr = (self.UdpMsgCntr + 1) % 16
+			print(self.UdpMsgCntr)
+            
+			self.UdpMsg = data
+			self.UdpMsgString = String(decoding: self.UdpMsg!, as: UTF8.self)
+			print("Message received in class : \(self.UdpMsgString)")
+            
+			self.decodeMessage()
+            
             if self.Listening {
                 self.receive()
-            }
+			}
+        }
+    }
+	
+	func decodeMessage() {
+        
+        self.UdpMsgList = self.UdpMsgString.components(separatedBy: ";")
+        
+        if self.UdpMsgString.starts(with: "01;") {
+            NotificationCenter.default.post(name: Notification.Name.VBattNotif, object: self.UdpMsgList[1])
+        } else if self.UdpMsgString.starts(with: "02;") {
+            NotificationCenter.default.post(name: Notification.Name.VBecNotif, object: self.UdpMsgList[1])
+        } else if self.UdpMsgString.starts(with: "03;") {
+            NotificationCenter.default.post(name: Notification.Name.Temp1Notif, object: self.UdpMsgList[1])
+        } else if self.UdpMsgString.starts(with: "04;") {
+            NotificationCenter.default.post(name: Notification.Name.Temp2Notif, object: self.UdpMsgList[1])
         }
     }
     
